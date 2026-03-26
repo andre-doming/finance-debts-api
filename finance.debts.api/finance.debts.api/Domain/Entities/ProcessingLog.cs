@@ -6,6 +6,7 @@
         public int DebtId { get; set; }
         public int StatusId { get; set; }
         public string Message { get; set; } = string.Empty;
+        public Guid? CorrelationId { get; set; } 
         public DateTime CreatedAt { get; set; }
     }
 }

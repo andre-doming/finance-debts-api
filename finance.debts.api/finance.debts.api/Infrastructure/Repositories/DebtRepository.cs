@@ -1,7 +1,8 @@
 ﻿using Dapper;
-using Microsoft.Data.SqlClient;
 using finance.debts.api.Domain.Entities;
+using finance.debts.api.Domain.Enums;
 using finance.debts.api.Domain.Interfaces;
+using Microsoft.Data.SqlClient;
 
 namespace finance.debts.api.Infrastructure.Repositories;
 
@@ -30,26 +31,29 @@ public class DebtRepository : IDebtRepository
 
         return await connection.QueryFirstOrDefaultAsync<Debt>(sql, new { Id = id });
     }
-    public async Task UpdateAsync(Debt debt)
+    public async Task<bool> TryProcessAsync(Debt debt)
     {
         using var connection = new SqlConnection(_connectionString);
 
         var sql = @"
         UPDATE Debts
-        SET status_id = @StatusId,
-        amount_paid = @AmountPaid,
-        payment_date = @PaymentDate
-        WHERE debt_id = @DebtId";
+        SET status_id = @ProcessedStatus,
+            amount_paid = @AmountPaid,
+            payment_date = @PaymentDate,
+            correlation_id = @CorrelationId
+        WHERE debt_id = @DebtId
+          AND status_id != @ProcessedStatus";
 
         var rows = await connection.ExecuteAsync(sql, new
         {
-            debt.StatusId,
+            ProcessedStatus = ProcessingStatus.Processed,
             debt.AmountPaid,
             debt.PaymentDate,
-            debt.DebtId
+            debt.DebtId,
+            CorrelationId = debt.CorrelationId
         });
 
-        if (rows == 0)
-            throw new Exception("Falha ao atualizar dívida");
+        return rows > 0;
     }
+
 }

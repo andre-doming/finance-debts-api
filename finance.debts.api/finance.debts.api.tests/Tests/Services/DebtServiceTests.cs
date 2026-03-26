@@ -47,7 +47,7 @@ namespace finance.debts.api.tests.Tests.Services
 
             // ✅ valida update
             _debtRepositoryMock.Verify(x =>
-                x.UpdateAsync(It.Is<Debt>(d =>
+                x.TryProcessAsync(It.Is<Debt>(d =>
                     d.StatusId == ProcessingStatus.Processed &&
                     d.AmountPaid == 100
                 )),
@@ -95,13 +95,13 @@ namespace finance.debts.api.tests.Tests.Services
             );
 
             _debtRepositoryMock.Verify(x =>
-                x.UpdateAsync(It.IsAny<Debt>()),
+                x.TryProcessAsync(It.IsAny<Debt>()),
                 Times.Never
             );
 
             // não deve atualizar
             _debtRepositoryMock.Verify(x =>
-                x.UpdateAsync(It.IsAny<Debt>()),
+                x.TryProcessAsync(It.IsAny<Debt>()),
                 Times.Never);
         }
         [Fact]

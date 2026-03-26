@@ -13,6 +13,7 @@ public class Debt
     public ProcessingStatus StatusId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? PaymentDate { get; set; }
+    public Guid? CorrelationId { get; set; }
 
     // regra de negócio
     public void Process()

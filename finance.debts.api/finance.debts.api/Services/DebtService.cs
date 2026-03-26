@@ -20,7 +20,7 @@ namespace finance.debts.api.Services
             _logRepository = logRepository;
         }
 
-        public async Task<string> ProcessDebtAsync(int id)
+        public async Task<string> ProcessDebtAsync(int id, Guid? correlationId)
         {
             try
             {
@@ -32,24 +32,31 @@ namespace finance.debts.api.Services
                 if (debt is null)
                     throw new KeyNotFoundException("Dívida não encontrada");
 
-                // regra de negócio
-                if (debt.StatusId == ProcessingStatus.Processed)
-                    throw new InvalidOperationException("Dívida já processada");
-
                 // atualiza status
                 debt.StatusId = ProcessingStatus.Processed;
                 debt.AmountPaid= debt.AmountDue;
                 debt.PaymentDate = DateTime.UtcNow;
+                debt.CorrelationId = correlationId;
 
                 // 💾 salva no banco
-                await _repository.UpdateAsync(debt);
+                //var updated = await _repository.TryProcessAsync(debt);
+
+                //await _repository.UpdateAsync(debt);
+
+                var updated = await _repository.TryProcessAsync(debt);
+
+                if (!updated)
+                {
+                    return $"Debt {id} already processed";
+                }
 
                 // 🟡 👉 AQUI ENTRA O LOG
                 await _logRepository.AddAsync(new ProcessingLog
                 {
                     DebtId = debt.DebtId,
                     StatusId = (int)debt.StatusId,
-                    Message = "Dívida processada com sucesso",
+                    Message = "Divida processada com sucesso",
+                    CorrelationId = correlationId,
                     CreatedAt = DateTime.UtcNow
                 });
 

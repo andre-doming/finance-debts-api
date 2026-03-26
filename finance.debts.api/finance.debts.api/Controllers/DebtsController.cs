@@ -1,28 +1,43 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using finance.debts.api.Services;
+using Microsoft.Extensions.Logging;
 
-namespace finance.debts.api.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class DebtsController : ControllerBase
+namespace finance.debts.api.Controllers
 {
-    private readonly DebtService _service;
-
-    public DebtsController(DebtService service)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class DebtsController : ControllerBase
     {
-        _service = service;
-    }
+        private readonly DebtService _service;
+        private readonly ILogger<DebtsController> _logger;
 
-    [HttpPost("{id}/process")]
-    public async Task<IActionResult> ProcessDebt(int id)
-    {
-        var result = await _service.ProcessDebtAsync(id);
-
-        return Ok(new
+        public DebtsController(DebtService service, ILogger<DebtsController> logger)
         {
-            message = result,
-            debtId = id
-        });
+            _service = service;
+            _logger = logger;
+        }
+
+        [HttpPost("{id}/process")]
+        public async Task<IActionResult> ProcessDebt(int id)
+        {
+            var correlationIdHeader = HttpContext.Request.Headers["x-correlation-id"].FirstOrDefault();
+
+            Guid? correlationId = null;
+
+            if (Guid.TryParse(correlationIdHeader, out var parsed))
+            {
+                correlationId = parsed;
+            }
+
+            _logger.LogInformation("🔗 CorrelationId recebido: {CorrelationId}", correlationId);
+
+            var result = await _service.ProcessDebtAsync(id, correlationId);
+
+            return Ok(new
+            {
+                message = result,
+                debtId = id
+            });
+        }
     }
 }

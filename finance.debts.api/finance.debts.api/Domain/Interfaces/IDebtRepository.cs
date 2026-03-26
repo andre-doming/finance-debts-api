@@ -5,5 +5,5 @@ namespace finance.debts.api.Domain.Interfaces;
 public interface IDebtRepository
 {
     Task<Debt?> GetByIdAsync(int id);
-    Task UpdateAsync(Debt debt);
+    Task<bool> TryProcessAsync(Debt debt);
 }

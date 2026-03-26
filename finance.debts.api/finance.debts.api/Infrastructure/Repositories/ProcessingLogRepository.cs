@@ -19,8 +19,8 @@ namespace finance.debts.api.Infrastructure.Repositories
             using var connection = new SqlConnection(_connectionString);
 
             var sql = @"
-        INSERT INTO processing_logs (debt_id, status_id, message, created_at)
-        VALUES (@DebtId, @StatusId, @Message, @CreatedAt)";
+            INSERT INTO processing_logs (debt_id, status_id, message, correlation_id, created_at)
+            VALUES (@DebtId, @StatusId, @Message, @CorrelationId, @CreatedAt)";
 
             await connection.ExecuteAsync(sql, log);
         }
