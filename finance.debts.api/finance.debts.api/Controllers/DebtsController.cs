@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using finance.debts.api.Services;
-using Microsoft.Extensions.Logging;
 
 namespace finance.debts.api.Controllers
 {
@@ -29,7 +28,7 @@ namespace finance.debts.api.Controllers
                 correlationId = parsed;
             }
 
-            _logger.LogInformation("🔗 CorrelationId recebido: {CorrelationId}", correlationId);
+            _logger.LogInformation("CorrelationId recebido: {CorrelationId}", correlationId);
 
             var result = await _service.ProcessDebtAsync(id, correlationId);
 

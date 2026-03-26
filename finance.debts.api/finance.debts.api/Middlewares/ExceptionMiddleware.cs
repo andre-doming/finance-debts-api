@@ -1,48 +1,50 @@
 ﻿using System.Net;
 using System.Text.Json;
 
-namespace finance.debts.api.Middlewares;
-
-public class ExceptionMiddleware
+namespace finance.debts.api.Middlewares
 {
-    private readonly RequestDelegate _next;
 
-    public ExceptionMiddleware(RequestDelegate next)
+    public class ExceptionMiddleware
     {
-        _next = next;
-    }
+        private readonly RequestDelegate _next;
 
-    public async Task InvokeAsync(HttpContext context)
-    {
-        try
+        public ExceptionMiddleware(RequestDelegate next)
         {
-            await _next(context);
+            _next = next;
         }
-        catch (Exception ex)
+
+        public async Task InvokeAsync(HttpContext context)
         {
-            await HandleException(context, ex);
+            try
+            {
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                await HandleException(context, ex);
+            }
         }
-    }
 
-    private static Task HandleException(HttpContext context, Exception ex)
-    {
-        var statusCode = ex switch
+        private static Task HandleException(HttpContext context, Exception ex)
         {
-            ArgumentException => HttpStatusCode.BadRequest,
-            KeyNotFoundException => HttpStatusCode.NotFound,
-            TimeoutException => HttpStatusCode.GatewayTimeout,
-            _ => HttpStatusCode.InternalServerError
-        };
+            var statusCode = ex switch
+            {
+                ArgumentException => HttpStatusCode.BadRequest,
+                KeyNotFoundException => HttpStatusCode.NotFound,
+                TimeoutException => HttpStatusCode.GatewayTimeout,
+                _ => HttpStatusCode.InternalServerError
+            };
 
-        var response = new
-        {
-            error = ex.Message,
-            status = (int)statusCode
-        };
+            var response = new
+            {
+                error = ex.Message,
+                status = (int)statusCode
+            };
 
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)statusCode;
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)statusCode;
 
-        return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        }
     }
 }

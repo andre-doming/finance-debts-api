@@ -1,9 +1,9 @@
-﻿using finance.debts.api.Domain.Entities;
-using finance.debts.api.Domain.Enums;
-using finance.debts.api.Domain.Interfaces;
-using finance.debts.api.Services;
-using Moq;
+﻿using Moq;
 using FluentAssertions;
+using finance.debts.api.Services;
+using finance.debts.api.Domain.Enums;
+using finance.debts.api.Domain.Entities;
+using finance.debts.api.Domain.Interfaces;
 
 namespace finance.debts.api.tests.Tests.Services
 {
@@ -40,12 +40,12 @@ namespace finance.debts.api.tests.Tests.Services
                 .ReturnsAsync(debt);
 
             // Act
-            var result = await _service.ProcessDebtAsync(1);
+            var result = await _service.ProcessDebtAsync(1, Guid.NewGuid());
 
             // Assert
             result.Should().Be("Debt 1 processed successfully");
 
-            // ✅ valida update
+            // valida update
             _debtRepositoryMock.Verify(x =>
                 x.TryProcessAsync(It.Is<Debt>(d =>
                     d.StatusId == ProcessingStatus.Processed &&
@@ -53,7 +53,7 @@ namespace finance.debts.api.tests.Tests.Services
                 )),
                 Times.Once);
 
-            // ✅ valida log de sucesso
+            // valida log de sucesso
             _logRepositoryMock.Verify(x =>
                 x.AddAsync(It.Is<ProcessingLog>(log =>
                     log.DebtId == 1 &&
@@ -69,7 +69,7 @@ namespace finance.debts.api.tests.Tests.Services
             var debt = new Debt
             {
                 DebtId = 1,
-                StatusId = ProcessingStatus.Processed, // já processada
+                StatusId = ProcessingStatus.Processed,
                 AmountDue = 100
             };
 
@@ -78,13 +78,13 @@ namespace finance.debts.api.tests.Tests.Services
                 .ReturnsAsync(debt);
 
             // Act
-            var act = async () => await _service.ProcessDebtAsync(1);
+            var act = async () => await _service.ProcessDebtAsync(1, Guid.NewGuid());
 
             // Assert
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage("Dívida já processada");
 
-            // 🔥 valida que log foi salvo
+            // valida que log foi salvo
             _logRepositoryMock.Verify(x =>
                 x.AddAsync(It.Is<ProcessingLog>(log =>
                     log.DebtId == 1 &&
@@ -113,7 +113,7 @@ namespace finance.debts.api.tests.Tests.Services
                 .ReturnsAsync((Debt?)null);
 
             // Act
-            var act = async () => await _service.ProcessDebtAsync(1);
+            var act = async () => await _service.ProcessDebtAsync(1, Guid.NewGuid());
 
             // Assert
             await act.Should().ThrowAsync<KeyNotFoundException>()
@@ -132,7 +132,7 @@ namespace finance.debts.api.tests.Tests.Services
         public async Task ProcessDebt_Should_ThrowException_When_IdIsInvalid()
         {
             // Act
-            var act = async () => await _service.ProcessDebtAsync(0);
+            var act = async () => await _service.ProcessDebtAsync(0, Guid.NewGuid());
 
             // Assert
             await act.Should().ThrowAsync<ArgumentException>()

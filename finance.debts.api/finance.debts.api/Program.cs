@@ -14,7 +14,6 @@ builder.Services.AddScoped<IProcessingLogRepository, ProcessingLogRepository>();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
@@ -23,7 +22,6 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 // Configure the HTTP request pipeline.
-
 app.UseHttpsRedirection();
 
 app.MapControllers();

@@ -32,17 +32,13 @@ namespace finance.debts.api.Services
                 if (debt is null)
                     throw new KeyNotFoundException("Dívida não encontrada");
 
-                // atualiza status
+                // atualiza campos
                 debt.StatusId = ProcessingStatus.Processed;
-                debt.AmountPaid= debt.AmountDue;
+                debt.AmountPaid = debt.AmountDue;
                 debt.PaymentDate = DateTime.UtcNow;
                 debt.CorrelationId = correlationId;
 
-                // 💾 salva no banco
-                //var updated = await _repository.TryProcessAsync(debt);
-
-                //await _repository.UpdateAsync(debt);
-
+                // salva no banco
                 var updated = await _repository.TryProcessAsync(debt);
 
                 if (!updated)
@@ -50,7 +46,7 @@ namespace finance.debts.api.Services
                     return $"Debt {id} already processed";
                 }
 
-                // 🟡 👉 AQUI ENTRA O LOG
+                // log
                 await _logRepository.AddAsync(new ProcessingLog
                 {
                     DebtId = debt.DebtId,
@@ -75,8 +71,5 @@ namespace finance.debts.api.Services
                 throw;
             }
         }
-
-        //Service fazia tudo sozinho
-        //Service → chama Repository → usa Domain
     }
 }
