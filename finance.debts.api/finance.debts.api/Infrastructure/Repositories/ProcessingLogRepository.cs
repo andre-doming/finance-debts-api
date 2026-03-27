@@ -1,7 +1,7 @@
 ﻿using Dapper;
-using finance.debts.api.Domain.Entities;
-using finance.debts.api.Domain.Interfaces;
 using Microsoft.Data.SqlClient;
+using finance.debts.domain.Entities;
+using finance.debts.domain.Interfaces;
 
 namespace finance.debts.api.Infrastructure.Repositories
 {

@@ -1,9 +1,9 @@
 ﻿using Moq;
 using FluentAssertions;
 using finance.debts.api.Services;
-using finance.debts.api.Domain.Enums;
-using finance.debts.api.Domain.Entities;
-using finance.debts.api.Domain.Interfaces;
+using finance.debts.domain.Enums;
+using finance.debts.domain.Entities;
+using finance.debts.domain.Interfaces;
 
 namespace finance.debts.api.tests.Tests.Services
 {
@@ -28,16 +28,20 @@ namespace finance.debts.api.tests.Tests.Services
         public async Task ProcessDebt_Should_Process_When_StatusIsPending()
         {
             // Arrange
-            var debt = new Debt
-            {
-                DebtId = 1,
-                StatusId = ProcessingStatus.Pending,
-                AmountDue = 100
-            };
+            var debt = new Debt(
+                debtId: 1,
+                clientId: 1,
+                amountDue: 100,
+                correlationId: null
+            );
 
             _debtRepositoryMock
                 .Setup(x => x.GetByIdAsync(1))
                 .ReturnsAsync(debt);
+
+            _debtRepositoryMock
+                .Setup(x => x.TryProcessAsync(It.IsAny<Debt>()))
+                .ReturnsAsync(true);
 
             // Act
             var result = await _service.ProcessDebtAsync(1, Guid.NewGuid());
@@ -45,7 +49,6 @@ namespace finance.debts.api.tests.Tests.Services
             // Assert
             result.Should().Be("Debt 1 processed successfully");
 
-            // valida update
             _debtRepositoryMock.Verify(x =>
                 x.TryProcessAsync(It.Is<Debt>(d =>
                     d.StatusId == ProcessingStatus.Processed &&
@@ -53,7 +56,6 @@ namespace finance.debts.api.tests.Tests.Services
                 )),
                 Times.Once);
 
-            // valida log de sucesso
             _logRepositoryMock.Verify(x =>
                 x.AddAsync(It.Is<ProcessingLog>(log =>
                     log.DebtId == 1 &&
@@ -66,12 +68,8 @@ namespace finance.debts.api.tests.Tests.Services
         public async Task ProcessDebt_Should_ThrowException_When_DebtAlreadyProcessed()
         {
             // Arrange
-            var debt = new Debt
-            {
-                DebtId = 1,
-                StatusId = ProcessingStatus.Processed,
-                AmountDue = 100
-            };
+            var debt = new Debt(1, 1, 100, null);
+            debt.Process(Guid.NewGuid());
 
             _debtRepositoryMock
                 .Setup(x => x.GetByIdAsync(1))

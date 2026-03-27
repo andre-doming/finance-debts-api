@@ -1,8 +1,10 @@
 ﻿using Dapper;
-using finance.debts.api.Domain.Entities;
-using finance.debts.api.Domain.Enums;
-using finance.debts.api.Domain.Interfaces;
+using finance.debts.api.Infrastructure.Data.Dtos;
+using finance.debts.domain.Interfaces;
+using finance.debts.domain.Entities;
+using finance.debts.domain.Enums;
 using Microsoft.Data.SqlClient;
+
 
 namespace finance.debts.api.Infrastructure.Repositories
 {
@@ -21,7 +23,7 @@ namespace finance.debts.api.Infrastructure.Repositories
             using var connection = new SqlConnection(_connectionString);
 
             var sql = @"
-            SELECT
+            SELECT 
                 debt_id AS DebtId,
                 client_id AS ClientId,
                 amount_due AS AmountDue,
@@ -30,7 +32,24 @@ namespace finance.debts.api.Infrastructure.Repositories
             FROM Debts
             WHERE debt_id = @Id";
 
-            return await connection.QueryFirstOrDefaultAsync<Debt>(sql, new { Id = id });
+            var dto = await connection.QueryFirstOrDefaultAsync<DebtDto>(sql, new { Id = id });
+
+            if (dto is null)
+                return null;
+
+            var debt = new Debt(
+                dto.DebtId,
+                dto.ClientId,
+                dto.AmountDue,
+                correlationId: null
+            );
+
+            if (dto.StatusId == (int)ProcessingStatus.Processed)
+            {
+                debt.Process(Guid.NewGuid());
+            }
+
+            return debt;
         }
         public async Task<bool> TryProcessAsync(Debt debt)
         {

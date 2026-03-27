@@ -21,12 +21,9 @@ namespace finance.debts.api.Controllers
         {
             var correlationIdHeader = HttpContext.Request.Headers["x-correlation-id"].FirstOrDefault();
 
-            Guid? correlationId = null;
+            Guid correlationId;
 
-            if (Guid.TryParse(correlationIdHeader, out var parsed))
-            {
-                correlationId = parsed;
-            }
+            correlationId = Guid.Parse(correlationIdHeader);
 
             _logger.LogInformation("CorrelationId recebido: {CorrelationId}", correlationId);
 

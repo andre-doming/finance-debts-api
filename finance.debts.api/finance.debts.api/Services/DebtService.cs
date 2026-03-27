@@ -1,6 +1,5 @@
-﻿using finance.debts.api.Domain.Entities;
-using finance.debts.api.Domain.Enums;
-using finance.debts.api.Domain.Interfaces;
+﻿using finance.debts.domain.Entities;
+using finance.debts.domain.Interfaces;
 
 namespace finance.debts.api.Services
 {
@@ -20,7 +19,7 @@ namespace finance.debts.api.Services
             _logRepository = logRepository;
         }
 
-        public async Task<string> ProcessDebtAsync(int id, Guid? correlationId)
+        public async Task<string> ProcessDebtAsync(int id, Guid correlationId)
         {
             try
             {
@@ -32,13 +31,11 @@ namespace finance.debts.api.Services
                 if (debt is null)
                     throw new KeyNotFoundException("Dívida não encontrada");
 
-                // atualiza campos
-                debt.StatusId = ProcessingStatus.Processed;
-                debt.AmountPaid = debt.AmountDue;
-                debt.PaymentDate = DateTime.UtcNow;
-                debt.CorrelationId = correlationId;
+                if (correlationId == Guid.Empty)
+                    throw new ArgumentException("CorrelationId é obrigatório");
 
-                // salva no banco
+                debt.Process(correlationId);
+
                 var updated = await _repository.TryProcessAsync(debt);
 
                 if (!updated)
@@ -46,7 +43,6 @@ namespace finance.debts.api.Services
                     return $"Debt {id} already processed";
                 }
 
-                // log
                 await _logRepository.AddAsync(new ProcessingLog
                 {
                     DebtId = debt.DebtId,

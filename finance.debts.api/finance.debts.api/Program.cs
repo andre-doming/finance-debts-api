@@ -1,4 +1,4 @@
-using finance.debts.api.Domain.Interfaces;
+using finance.debts.domain.Interfaces;
 using finance.debts.api.Infrastructure.Repositories;
 using finance.debts.api.Middlewares;
 using finance.debts.api.Services;
