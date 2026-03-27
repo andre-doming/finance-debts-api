@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Text.Json;
 
 namespace finance.debts.api.Middlewares
@@ -43,7 +44,7 @@ namespace finance.debts.api.Middlewares
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;
-
+            Console.WriteLine("Middleware executou!");
             return context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
     }

@@ -19,11 +19,16 @@ namespace finance.debts.api.Controllers
         [HttpPost("{id}/process")]
         public async Task<IActionResult> ProcessDebt(int id)
         {
-            var correlationIdHeader = HttpContext.Request.Headers["x-correlation-id"].FirstOrDefault();
+            /* var correlationIdHeader = HttpContext.Request.Headers["correlationId"];
 
             Guid correlationId;
 
-            correlationId = Guid.Parse(correlationIdHeader);
+            if (!string.IsNullOrEmpty(correlationIdHeader) && Guid.TryParse(correlationIdHeader, out var parsed))
+                correlationId = parsed;
+            else
+                correlationId = Guid.NewGuid();*/
+
+            var correlationId = (Guid)HttpContext.Items["CorrelationId"];
 
             _logger.LogInformation("CorrelationId recebido: {CorrelationId}", correlationId);
 

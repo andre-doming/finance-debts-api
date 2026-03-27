@@ -16,6 +16,7 @@ builder.Services.AddScoped<IProcessingLogRepository, ProcessingLogRepository>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 var app = builder.Build();
 
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseSwagger();
